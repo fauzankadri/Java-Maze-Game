@@ -1,0 +1,131 @@
+package mazegame;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * A class that represents the basic functionality of the maze game.
+ * This class is responsible for performing the following operations:
+ * 1. At creation, it initializes the instance variables used to store the
+ *        current state of the game.
+ * 2. When a move is specified, it checks if it is a legal move and makes the
+ *        move if it is legal.
+ * 3. It reports information about the current state of the game when asked.
+ */
+public class MazeGame {
+
+    /** A random number generator to move the MobileBananas. */
+    private Random random;
+    
+    /** The maze grid. */
+    private Grid<Sprite> maze;
+    
+    /** The first player. */
+    private Monkey player1;
+    
+    /** The second player. */
+    private Monkey player2;
+
+    /** The bananas to eat. */
+    private List<Banana> bananas;
+    
+    /**
+     * @param layoutFileName
+     */
+    public MazeGame(String layoutFileName) throws IOException {
+        random = new Random();
+        
+        int[] dimensions = getDimensions(layoutFileName);
+        maze = new ArrayGrid<Sprite>(dimensions[0], dimensions[1]);
+               
+        BufferedReader br = new BufferedReader(new FileReader(layoutFileName));
+
+	/* INITIALIZE THE GRID HERE */
+        for (int i = 0; i < dimensions[0]; i++){
+        	String nextLine = br.readLine();
+        	for (int j = 0; j < dimensions[1]; j++){
+        		char smbl = nextLine.charAt(j);
+        		if (smbl == MazeConstants.WALL){
+        			maze.setCell(i, j, new Wall(MazeConstants.WALL, i, j));
+        		}
+        		else if (smbl == MazeConstants.BANANA){
+        			maze.setCell(i, j, new Banana(MazeConstants.BANANA, i, j));
+        		}
+        		else if (smbl == MazeConstants.MOBILE_BANANA){
+        			maze.setCell(i, j, new MobileBanana(MazeConstants.MOBILE_BANANA, i, j));
+        		}
+        		else if (smbl == MazeConstants.P1){
+        			maze.setCell(i, j, new Monkey(MazeConstants.P1, i, j));
+        		}
+        		else if (smbl == MazeConstants.P2){
+        			maze.setCell(i, j, new Monkey(MazeConstants.P2, i, j));
+        		}
+        		else if (smbl == MazeConstants.VACANT){
+        			maze.setCell(i, j, new UnvisitedHallway(MazeConstants.VACANT, i, j));
+        		}
+        	}
+        }
+	
+        br.close();
+    }
+    
+    private int[] getDimensions(String layoutFileName) throws IOException {       
+        
+        BufferedReader br = new BufferedReader(new FileReader(layoutFileName));
+    
+        // find the number of columns
+        String nextLine = br.readLine();
+        int numCols = nextLine.length();
+
+        int numRows = 0;
+    
+        // find the number of rows
+        while (nextLine != null && nextLine != "") {
+            numRows++;
+            nextLine = br.readLine();
+        }
+        
+        br.close();
+        return new int[]{numRows, numCols};
+    }
+
+	public Grid<Sprite> getMaze() {
+		return maze;
+	}
+
+	public Monkey getPlayerOne() {
+		return player1;
+	}
+
+	public Monkey getPlayerTwo() {
+		return player2;
+	}
+    public int getNumRows(){
+    	return maze.getNumRows();
+    }
+    public int getNumCols(){
+    	return maze.getNumCols();
+    }
+    public Sprite get(int i, int j){
+    	return maze.getCell(i, j);
+    }
+    public void move(char nextMove){
+    	
+    	
+    }
+    public int hasWon(){
+    	if (player1.getScore() == player2.getScore()){
+    		return 3;
+    	}
+    	else if (player1.getScore() > player2.getScore()){
+    		return 1;
+    	}
+    	return 2;
+    }
+    public boolean isBlocked(){
+    	return false;
+    }
+}

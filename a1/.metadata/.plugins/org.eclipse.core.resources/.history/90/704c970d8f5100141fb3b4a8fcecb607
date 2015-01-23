@@ -1,0 +1,17 @@
+package mazegame;
+
+public class MobileBanana extends Banana implements Moveable {
+
+	public MobileBanana(char symbol, int row, int column) {
+		super(symbol, row, column);
+		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public void move(int row, int col) {
+		this.row = row;
+		this.column = col;
+		
+	}
+
+}

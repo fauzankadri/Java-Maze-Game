@@ -1,0 +1,29 @@
+package mazegame;
+
+public class Monkey extends Sprite implements Moveable{
+	private int score;
+	private int numMoves;
+
+	public Monkey(char symbol, int row, int column) {
+		super(symbol, row, column);
+		this.score = 0;
+		this.numMoves = 0;
+	}
+	public void eatBanana(int score){
+		this.score += score;
+		
+	}
+	public int getScore() {
+		return this.score;
+	}
+	public int getNumMoves() {
+		return this.numMoves;
+	}
+	@Override
+	public void move(int row, int col) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+
+}

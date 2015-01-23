@@ -1,0 +1,301 @@
+package mazegame;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * A class that represents the basic functionality of the maze game.
+ * This class is responsible for performing the following operations:
+ * 1. At creation, it initializes the instance variables used to store the
+ *        current state of the game.
+ * 2. When a move is specified, it checks if it is a legal move and makes the
+ *        move if it is legal.
+ * 3. It reports information about the current state of the game when asked.
+ */
+public class MazeGame {
+
+    /** A random number generator to move the MobileBananas. */
+    private Random random;
+    
+    /** The maze grid. */
+    private Grid<Sprite> maze;
+    
+    /** The first player. */
+    private Monkey player1;
+    
+    /** The second player. */
+    private Monkey player2;
+
+    /** The bananas to eat. */
+    private List<Banana> bananas;
+    
+    /**
+     * @param layoutFileName
+     */
+    public MazeGame(String layoutFileName) throws IOException {
+        random = new Random();
+        bananas = new ArrayList<Banana>();
+        
+        int[] dimensions = getDimensions(layoutFileName);
+        maze = new ArrayGrid<Sprite>(dimensions[0], dimensions[1]);
+               
+        BufferedReader br = new BufferedReader(new FileReader(layoutFileName));
+
+	/* INITIALIZE THE GRID HERE */
+        for (int i = 0; i < dimensions[0]; i++){
+        	String nextLine = br.readLine();
+        	for (int j = 0; j < dimensions[1]; j++){
+        		char smbl = nextLine.charAt(j);
+        		if (smbl == MazeConstants.WALL){
+        			maze.setCell(i, j, new Wall(MazeConstants.WALL, i, j));
+        		}
+        		else if (smbl == MazeConstants.BANANA){
+        			Banana item = new MobileBanana(MazeConstants.BANANA, i, j);
+        			bananas.add(item);
+        			maze.setCell(i, j, item);
+        		}
+        		else if (smbl == MazeConstants.MOBILE_BANANA){
+        			Banana item = new MobileBanana(MazeConstants.MOBILE_BANANA, i, j);
+        			bananas.add(item);
+        			maze.setCell(i, j, item);
+        		}
+        		else if (smbl == MazeConstants.P1){
+        			player1 = new Monkey(MazeConstants.P1, i, j);
+        			maze.setCell(i, j, player1);
+        			
+        		}
+        		else if (smbl == MazeConstants.P2){
+        			player2 = new Monkey(MazeConstants.P2, i, j);
+        			maze.setCell(i, j, player2);
+        		}
+        		else if (smbl == MazeConstants.VACANT){
+        			maze.setCell(i, j, new UnvisitedHallway(MazeConstants.VACANT, i, j));
+        		}
+        	}
+        }
+	
+        br.close();
+    }
+    
+    private int[] getDimensions(String layoutFileName) throws IOException {       
+        
+        BufferedReader br = new BufferedReader(new FileReader(layoutFileName));
+    
+        // find the number of columns
+        String nextLine = br.readLine();
+        int numCols = nextLine.length();
+
+        int numRows = 0;
+    
+        // find the number of rows
+        while (nextLine != null && nextLine != "") {
+            numRows++;
+            nextLine = br.readLine();
+        }
+        
+        br.close();
+        return new int[]{numRows, numCols};
+    }
+
+	public Grid<Sprite> getMaze() {
+		return maze;
+	}
+
+	public Monkey getPlayerOne() {
+		return player1;
+	}
+
+	public Monkey getPlayerTwo() {
+		return player2;
+	}
+    public int getNumRows(){
+    	return maze.getNumRows();
+    }
+    public int getNumCols(){
+    	return maze.getNumCols();
+    }
+    public Sprite get(int i, int j){
+    	return maze.getCell(i, j);
+    }
+    // WORK HERE
+    public void move(char nextMove){
+    	if ((nextMove == MazeConstants.P1_UP)||(nextMove == MazeConstants.P1_LEFT)||
+    			(nextMove == MazeConstants.P1_DOWN)||(nextMove == MazeConstants.P1_RIGHT)){
+    		playerOneMove(nextMove);
+    	}
+    	else if((nextMove == MazeConstants.P2_UP)||(nextMove == MazeConstants.P2_LEFT)||
+    			(nextMove == MazeConstants.P2_DOWN)||(nextMove == MazeConstants.P2_RIGHT)){
+    		playerTwoMove(nextMove);
+    	}
+
+    	
+    }
+    public int hasWon(){
+    	if (bananas.size() != 0){
+    		return 0;
+    	}
+    	else if (player1.getScore() == player2.getScore()){
+    		return 3;
+    	}
+    	else if (player1.getScore() > player2.getScore()){
+    		return 1;
+    	}
+    	else{
+    		return 2;
+    	}
+    }
+    public boolean isBlocked(){
+    	if ((playerOneStuck() == false) || (playerTwoStuck() == false)){
+    		return false;
+    	}
+    	return true;
+    }
+    private boolean playerOneStuck(){
+    	int p1row = player1.getRow();
+    	int p1col = player1.getColumn();
+    	int numCols = maze.getNumCols();
+    	int numRows = maze.getNumRows();
+    	List<Boolean> isStuck = new ArrayList<Boolean>();
+    	if (p1row != 0){
+    		Sprite up = maze.getCell(p1row - 1, p1col);
+    		isStuck.add(isStuck(up));
+    	}
+    	if (p1col != 0){
+    		Sprite left = maze.getCell(p1row, p1col - 1);
+    		isStuck.add(isStuck(left));
+    	}
+    	if (p1row != numRows -1){
+    		Sprite down = maze.getCell(p1row + 1, p1col);
+    		isStuck.add(isStuck(down));
+    	}
+    	if (p1col != numCols - 1){
+    		Sprite right = maze.getCell(p1row, p1row - 1);
+    		isStuck.add(isStuck(right));
+    	}
+    	return !isStuck.contains(false);
+    }
+    private boolean playerTwoStuck(){
+    	int p2row = player2.getRow();
+    	int p2col = player2.getColumn();
+    	int numCols = maze.getNumCols();
+    	int numRows = maze.getNumRows();
+    	List<Boolean> isStuck = new ArrayList<Boolean>();
+    	if (p2row != 0){
+    		Sprite up = maze.getCell(p2row - 1, p2col);
+    		isStuck.add(isStuck(up));
+    	}
+    	if (p2col != 0){
+    		Sprite left = maze.getCell(p2row, p2col - 1);
+    		isStuck.add(isStuck(left));
+    	}
+    	if (p2row != numRows -1){
+    		Sprite down = maze.getCell(p2row + 1, p2col);
+    		isStuck.add(isStuck(down));
+    	}
+    	if (p2col != numCols - 1){
+    		Sprite right = maze.getCell(p2row, p2row - 1);
+    		isStuck.add(isStuck(right));
+    	}
+    	return !isStuck.contains(false);
+    	
+    }
+    private boolean isStuck(Sprite item){
+    	if ((item.symbol == MazeConstants.VISITED) || (item.symbol == MazeConstants.WALL) || 
+    			(item.symbol == MazeConstants.P1) || (item.symbol == MazeConstants.P2)){
+    		return true;
+    	}
+    	return false;
+    }
+    private void playerOneMove(char nextMove){
+    	//player1
+    	int row = player1.getRow();
+    	int col = player1.getColumn();
+    	int numRows = maze.getNumRows();
+    	int numCols = maze.getNumCols();
+    	if (nextMove == MazeConstants.P1_UP){
+    		if (row != 0){
+    			Sprite p1up = maze.getCell(row - 1, col);
+    			if (!isStuck(p1up)){
+    				player1.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P1_LEFT){
+    		if (col != 0){
+    			Sprite p1left = maze.getCell(row, col - 1);
+    			if (!isStuck(p1left)){
+    				player1.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P1_DOWN){
+    		if (row != numRows - 1){
+    			Sprite down = maze.getCell(row + 1, col);
+    			if(!isStuck(down)){
+    				player1.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P1_RIGHT){
+    		if (col != numCols - 1){
+    			Sprite right = maze.getCell(row, col);
+    			if (!isStuck(right)){
+    				player1.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	
+    }
+    private void playerTwoMove(char nextMove){
+    	//player1
+    	int row = player2.getRow();
+    	int col = player2.getColumn();
+    	int numRows = maze.getNumRows();
+    	int numCols = maze.getNumCols();
+    	if (nextMove == MazeConstants.P2_UP){
+    		if (row != 0){
+    			Sprite p1up = maze.getCell(row - 1, col);
+    			if (!isStuck(p1up)){
+    				player2.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P2_LEFT){
+    		if (col != 0){
+    			Sprite p1left = maze.getCell(row, col - 1);
+    			if (!isStuck(p1left)){
+    				player2.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P2_DOWN){
+    		if (row != numRows - 1){
+    			Sprite down = maze.getCell(row + 1, col);
+    			if(!isStuck(down)){
+    				player2.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	else if (nextMove == MazeConstants.P2_RIGHT){
+    		if (col != numCols - 1){
+    			Sprite right = maze.getCell(row, col);
+    			if (!isStuck(right)){
+    				player2.move(row, col - 1);
+    				maze.setCell(row, col, new VisitedHallway(MazeConstants.VISITED, row, col));
+    			}
+    		}
+    	}
+    	
+    }
+}

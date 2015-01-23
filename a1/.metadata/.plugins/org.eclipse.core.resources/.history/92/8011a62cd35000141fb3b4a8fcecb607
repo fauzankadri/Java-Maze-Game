@@ -1,0 +1,67 @@
+package mazegame;
+
+public class ArrayGrid<T> implements Grid<T> {
+	private int numRows;
+	private int numCols;
+	private int row;
+	private int col;
+	private T item;
+	private T[][] grid;
+	
+	@SuppressWarnings("unchecked")
+	public ArrayGrid(int numRows, int numCols){
+		this.numRows = numRows;
+		this.numCols = numCols;
+		this.grid = (T[][]) new Object[this.numRows][this.numCols];
+	}
+	@Override
+	public void setCell(int row, int col, T item) {
+		this.row = row;
+		this.col = col;
+		this.grid[this.row][this.col] = (T) this.item;
+	}
+	@Override
+	public T getCell(int row, int col) {
+		// TODO Auto-generated method stub
+		return this.grid[row][col];
+	}
+	@Override
+	public int getNumRows() {
+		// TODO Auto-generated method stub
+		return this.numRows;
+	}
+	@Override
+	public int getNumCols() {
+		// TODO Auto-generated method stub
+		return this.numCols;
+	}
+	@Override
+	public boolean equals(@SuppressWarnings("rawtypes") Grid other) {
+		// TODO Auto-generated method stub
+		if ((this.getNumCols() != other.getNumCols())&&(this.getNumRows() != other.getNumRows())){
+			return false;
+		}
+		for (int i = 0; i < this.getNumRows(); i++){
+			for (int j = 0; j < this.getNumCols(); j ++){
+				if (this.getCell(i, j).equals(other.getCell(i, j))){
+					return false;	
+				}
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		String ret = "";
+		
+		for (int i = 0; i < this.getNumRows(); i++){
+			for (int j = 0; j < this.getNumCols(); j++){
+				ret += this.getCell(i, j).getClass().getName().toString();
+			}
+			ret += "\n";
+		}
+		return ret;
+	}
+	
+}
